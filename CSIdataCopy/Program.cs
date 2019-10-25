@@ -21,43 +21,56 @@ namespace CSIdataCopy
         {
             int repeatNum = Convert.ToInt32(args[0]);
 
-            DateTime start = new DateTime(int.Parse(args[1].Substring(0, 4)), int.Parse(args[1].Substring(4, 2)), int.Parse(args[1].Substring(6, 2)));
-            Console.WriteLine(start.AddDays(r.Next(int.Parse(args[2]))));
+            DateTime startDate = new DateTime(int.Parse(args[1].Substring(0, 4)), int.Parse(args[1].Substring(4, 2)), int.Parse(args[1].Substring(6, 2)));
+            int dateRange = int.Parse(args[2]);
+            Console.WriteLine(startDate.AddDays(r.Next(dateRange)).ToString());
 
             // Create co_mst_new.csv
             string tableName = "co_mst";
             int[] keyPos = { 2 };
             string[] keyTypes = { "c" };
+            int datePos = 9;
             int[] repeatNums = { repeatNum, 1};
-            Console.WriteLine(tableName + " started." + " Repeat num is (" + repeatNums[0] + "," + repeatNums[1] + ")");
-            createInsertStatement(tableName, keyPos, keyTypes, repeatNums);
+            Console.WriteLine(tableName + " started.");
+            createInsertStatement(tableName, keyPos, keyTypes, datePos, startDate, dateRange, repeatNums);
 
             // create coitem_mst.csv
             tableName = "coitem_mst";
             keyPos = new int[] { 1, 2 };
             keyTypes = new string[] { "c", "n" };
+            datePos = 16;
             repeatNums = new int[] { repeatNum, 10};
-            Console.WriteLine(tableName + " started." + " Repeat num is (" + repeatNums[0] + "," + repeatNums[1] + ")");
-            createInsertStatement(tableName, keyPos, keyTypes, repeatNums);
+            Console.WriteLine(tableName + " started.");
+            createInsertStatement(tableName, keyPos, keyTypes, datePos, startDate, dateRange, repeatNums);
 
             // Create po_mst.csv
             tableName = "po_mst";
             keyPos = new int[] { 1 };
             keyTypes = new string[] { "c" };
+            datePos = 3;
             repeatNums = new int[] { repeatNum, 1};
-            Console.WriteLine(tableName + " started." + " Repeat num is (" + repeatNums[0] + "," + repeatNums[1] + ")");
-            createInsertStatement(tableName, keyPos, keyTypes, repeatNums);
+            Console.WriteLine(tableName + " started.");
+            createInsertStatement(tableName, keyPos, keyTypes, datePos, startDate, dateRange, repeatNums);
 
             // Create poitem_mst.csv
             tableName = "poitem_mst";
-            keyPos = new int[] { 1, 2 };
-            keyTypes = new string[] { "c", "n" };
+            keyPos = new int[] { 1, 2, 3 };
+            keyTypes = new string[] { "c", "n", "n" };
+            datePos = 16;
             repeatNums = new int[] { repeatNum, 10};
-            Console.WriteLine(tableName + " started." + " Repeat num is (" + repeatNums[0] + "," + repeatNums[1] + ")");
-            List<List<string>> generatedKeys = createInsertStatement(tableName, keyPos, keyTypes, repeatNums);
+            Console.WriteLine(tableName + " started.");
+            List<List<string>> generatedKeys = createInsertStatement(tableName, keyPos, keyTypes, datePos, startDate, dateRange, repeatNums);
+
+            // Create po_rcpt_mst.csv
+            tableName = "po_rcpt_mst";
+            int[] destKeyPos = { 1, 2, 3 };
+            datePos = 4;
+            int newKeyPos = 5;
+            string newKeyType = "p";
+            Console.WriteLine(tableName + " started.");
+            generatedKeys = createInsertStatement(generatedKeys, tableName, destKeyPos, newKeyPos, newKeyType, datePos, startDate, dateRange, 3, true);
 
             //Console.WriteLine("Printing generatedKeys");
-
             //for (int i = 0; i < generatedKeys.Count; i++)
             //{
             //    for (int j = 0; j < generatedKeys[i].Count; j++)
@@ -67,30 +80,32 @@ namespace CSIdataCopy
             //    }
             //}
 
-            // Create po_rcpt_mst.csv
-            tableName = "po_rcpt_mst";
-            int[] destKeyPos = { 1, 2 };
-            int newKeyPos = 5;
-            Console.WriteLine(tableName + " started." + " Repeat num is (" + destKeyPos[0] + "," + destKeyPos[1] + "," + repeatNum + ")");
-            createInsertStatement(generatedKeys, tableName, destKeyPos, newKeyPos, 3);
-
-            //// Create journal_mst.csv
-            //string TABLE_NAME6 = "journal_mst";
-            //int SEQ_POS6 = 2;
-            //int PO_POS6 = 18;
-            //createNewFileWithSeqPorder(TABLE_NAME6, TABLE_NAME3, TO_CHANGE_KEY_POS3[0], getStringArrayFromCSV(TABLE_NAME6 + FIELD_SUFFIX), getStringArrayFromCSV(TABLE_NAME6 + TYPE_SUFFIX), SEQ_POS6, PO_POS6, repeatNum);
+            // Create journal_mst.csv
+            tableName = "journal_mst";
+            destKeyPos = new int[] { 18, 19, 20 };
+            datePos = 3;
+            newKeyPos = 2;
+            newKeyType = "a";
+            Console.WriteLine(tableName + " started.");
+            createInsertStatement(generatedKeys, tableName, destKeyPos, newKeyPos, newKeyType, datePos, startDate, dateRange, 2, false);
 
             //// Create matltran_mst.csv
-            //string TABLE_NAME7 = "matltran_mst";
-            //int SEQ_POS7 = 1;
-            //int PO_POS7 = 9;
-            //createNewFileWithSeqPorder(TABLE_NAME7, TABLE_NAME3, TO_CHANGE_KEY_POS3[0], getStringArrayFromCSV(TABLE_NAME7 + FIELD_SUFFIX), getStringArrayFromCSV(TABLE_NAME7 + TYPE_SUFFIX), SEQ_POS7, PO_POS7, repeatNum);
+            tableName = "matltran_mst";
+            destKeyPos = new int[] { 9, 10, 11 };
+            datePos = 3;
+            newKeyPos = -1;
+            newKeyType = "a";
+            Console.WriteLine(tableName + " started.");
+            createInsertStatement(generatedKeys, tableName, destKeyPos, newKeyPos, newKeyType, datePos, startDate, dateRange, 1, false);
 
             //// Create matltran_amt_mst.csv
-            //string TABLE_NAME8 = "matltran_amt_mst";
-            //int SEQ_POS8 = 1;
-            //int PO_POS8 = 999;
-            //createNewFileWithSeqPorder(TABLE_NAME8, TABLE_NAME3, TO_CHANGE_KEY_POS3[0], getStringArrayFromCSV(TABLE_NAME8 + FIELD_SUFFIX), getStringArrayFromCSV(TABLE_NAME8 + TYPE_SUFFIX), SEQ_POS8, PO_POS8, repeatNum);
+            tableName = "matltran_amt_mst";
+            keyPos = new int[] { 1, 2 };
+            keyTypes = new string[] { "c", "n" };
+            datePos = -1;
+            repeatNums = new int[] { generatedKeys.Count, 1 };
+            Console.WriteLine(tableName + " started.");
+            createInsertStatement(tableName, keyPos, keyTypes, datePos, startDate, dateRange, repeatNums);
         }
 
         private static string[] loadMaster(string masterName, int columnNum)
@@ -118,11 +133,9 @@ namespace CSIdataCopy
             return (string[])valueList.ToArray(typeof(string));
         }
 
-        private static List<List<string>> createInsertStatement(string tableName, int[] keyPos, string[] keyTypes, int[] repeatNums)
+        private static List<List<string>> createInsertStatement(string tableName, int[] keyPos, string[] keyTypes, int datePos, DateTime startDate, int dateRange, int[] repeatNums)
         {
             List<List<string>> generatedKeys = new List<List<string>>();
-            //System.Random r = new System.Random();
-
             String inputCSVfilename = tableName + ".csv";
             String outputCSVfilename = System.IO.Path.GetFileNameWithoutExtension(inputCSVfilename) + "_new.csv";
 
@@ -189,9 +202,19 @@ namespace CSIdataCopy
                                 }
                                 else
                                 {
-                                    value = (Convert.ToInt32(originalLineArr[i2].ToString()) + rowIndex).ToString();
+                                    if (keyIndex == 1)
+                                    {
+                                        value = (Convert.ToInt32(originalLineArr[i2].ToString()) + rowIndex).ToString();
+                                    } else
+                                    {
+                                        value = "0";
+                                    }
                                     generatedKey.Add(value);
                                 }
+                            }
+                            else if (i2 == datePos)
+                            {
+                                value = startDate.AddDays(r.Next(dateRange)).ToString();
                             }
                             else if (fieldID[i2] == "item")
                             {
@@ -241,10 +264,9 @@ namespace CSIdataCopy
             return generatedKeys;
         }
 
-        private static void createInsertStatement(List<List<string>> generatedKeys, string tableName, int[] destKeyPos, int newKeyPos, int repeatNum)
+        private static List<List<string>> createInsertStatement(List<List<string>> givenKeys, string tableName, int[] destKeyPos, int newKeyPos, string newKeyType, int datePos, DateTime startDate, int dateRange, int repeatNum, Boolean repeatRandomFlg)
         {
-            //System.Random r = new System.Random();
-
+            List<List<string>> generatedKeys = new List<List<string>>();
             String srcCSVfilename = tableName + ".csv";          
             String outputCSVfilename = System.IO.Path.GetFileNameWithoutExtension(srcCSVfilename) + "_new.csv";
 
@@ -256,12 +278,17 @@ namespace CSIdataCopy
             {
                 string srcLine = reader.ReadLine();
                 string[] srcLineArr = srcLine.Split(',');
+                int allIndex = 1;
 
-                for (int srcRowIndex = 0; srcRowIndex < generatedKeys.Count; srcRowIndex++)
+                for (int srcRowIndex = 0; srcRowIndex < givenKeys.Count; srcRowIndex++)
                 {
                     Console.WriteLine("RowIndex is (" + srcRowIndex + ")");
+                    List<string> generatedKey = new List<string>();
 
-                    for (int rowIndex = 0; rowIndex < r.Next(repeatNum); rowIndex++)
+                    int randomRepeatNum = repeatNum;
+                    if (repeatRandomFlg) randomRepeatNum = r.Next(repeatNum) + 1;
+
+                    for (int rowIndex = 0; rowIndex < randomRepeatNum; rowIndex++)
                     {
                         // create insert statement 1 
                         StringBuilder insert_sb = new StringBuilder();
@@ -291,11 +318,24 @@ namespace CSIdataCopy
                             int keyIndex = Array.IndexOf(destKeyPos, i2);
                             if (-1 < keyIndex)
                             {
-                                value = generatedKeys[srcRowIndex][keyIndex];
+                                value = givenKeys[srcRowIndex][keyIndex];
+                                generatedKey.Add(value);
                             }
                             else if (i2 == newKeyPos)
                             {
-                                value = (Convert.ToInt32(srcLineArr[i2].ToString()) + rowIndex).ToString();
+                                if (newKeyType == "p" )
+                                {
+                                    value = (Convert.ToInt32(srcLineArr[i2].ToString()) + rowIndex).ToString();
+                                } else
+                                {
+                                    value = (Convert.ToInt32(srcLineArr[i2].ToString()) + allIndex).ToString();
+                                }
+                                
+                                generatedKey.Add(value);
+                            }
+                            else if (i2 == datePos)
+                            {
+                                value = startDate.AddDays(r.Next(dateRange)).ToString();
                             }
                             else if (fieldID[i2] == "item")
                             {
@@ -337,11 +377,14 @@ namespace CSIdataCopy
 
                         insert_sb.Append(");");
                         writer.WriteLine(insert_sb.ToString());
+                        generatedKeys.Add(generatedKey);
+                        allIndex++;
                     }
                 }
                 reader.Close();
                 writer.Close();
             }
+            return generatedKeys;
         }
 
         private static string[] getStringArrayFromCSV(string csvFileName)
