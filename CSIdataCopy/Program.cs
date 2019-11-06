@@ -39,7 +39,7 @@ namespace CSIdataCopy
             keyPos = new int[] { 1, 2 };
             keyTypes = new string[] { "c", "n" };
             datePos = 16;
-            repeatNums = new int[] { repeatNum, 10};
+            repeatNums = new int[] { repeatNum, 50};
             Console.WriteLine(tableName + " started.");
             createInsertStatement(tableName, keyPos, keyTypes, datePos, startDate, dateRange, repeatNums);
 
@@ -57,7 +57,7 @@ namespace CSIdataCopy
             keyPos = new int[] { 1, 2, 3 };
             keyTypes = new string[] { "c", "n", "n" };
             datePos = 16;
-            repeatNums = new int[] { repeatNum, 10};
+            repeatNums = new int[] { repeatNum, 50};
             Console.WriteLine(tableName + " started.");
             List<List<string>> generatedKeys = createInsertStatement(tableName, keyPos, keyTypes, datePos, startDate, dateRange, repeatNums);
 
@@ -137,7 +137,7 @@ namespace CSIdataCopy
         {
             List<List<string>> generatedKeys = new List<List<string>>();
             String inputCSVfilename = tableName + ".csv";
-            String outputCSVfilename = System.IO.Path.GetFileNameWithoutExtension(inputCSVfilename) + "_new.csv";
+            String outputCSVfilename = System.IO.Path.GetFileNameWithoutExtension(inputCSVfilename) + "_new.sql";
 
             string[] fieldID = getStringArrayFromCSV(tableName + FIELD_SUFFIX);
             string[] dataType = getStringArrayFromCSV(tableName + TYPE_SUFFIX);
@@ -146,14 +146,18 @@ namespace CSIdataCopy
             using (StreamWriter writer = new StreamWriter(outputCSVfilename, false, Encoding.GetEncoding("shift_jis")))
             {
                 string originalLine = reader.ReadLine();
+                writer.WriteLine("SET QUOTED_IDENTIFIER ON");
+                writer.WriteLine("GO");
+                writer.WriteLine("SET IMPLICIT_TRANSACTIONS ON");
+                writer.WriteLine("BEGIN");
 
                 for (int rowIndex1 = 0; rowIndex1 < repeatNums[0]; rowIndex1++)
                 {
                     Console.WriteLine("RowIndex1 is (" + rowIndex1 + ")");
-                    
+
                     int repeatNum2 = GetNormRandom(repeatNums[1] / 2, repeatNums[1] / 2);
                     if (repeatNum2 < 1) repeatNum2 = 1;
-
+                    
                     for (int rowIndex2 = 0; rowIndex2 < repeatNum2; rowIndex2++)
                     {
                         Console.WriteLine("RowIndex2 is (" + rowIndex2 + ")");
@@ -255,9 +259,12 @@ namespace CSIdataCopy
                         }
                         insert_sb.Append(");");
                         writer.WriteLine(insert_sb.ToString());
+                        //if (rowIndex1 % 5 == 0) writer.WriteLine("GO");
                         generatedKeys.Add(generatedKey);
                     }
                 }
+                writer.WriteLine("END");
+                writer.WriteLine("COMMIT TRANSACTION");
                 reader.Close();
                 writer.Close();
             }
@@ -268,7 +275,7 @@ namespace CSIdataCopy
         {
             List<List<string>> generatedKeys = new List<List<string>>();
             String srcCSVfilename = tableName + ".csv";          
-            String outputCSVfilename = System.IO.Path.GetFileNameWithoutExtension(srcCSVfilename) + "_new.csv";
+            String outputCSVfilename = System.IO.Path.GetFileNameWithoutExtension(srcCSVfilename) + "_new.sql";
 
             string[] fieldID = getStringArrayFromCSV(tableName + FIELD_SUFFIX);
             string[] dataType = getStringArrayFromCSV(tableName + TYPE_SUFFIX);
@@ -277,6 +284,11 @@ namespace CSIdataCopy
             using (StreamWriter writer = new StreamWriter(outputCSVfilename, false, Encoding.GetEncoding("shift_jis")))
             {
                 string srcLine = reader.ReadLine();
+                writer.WriteLine("SET QUOTED_IDENTIFIER ON");
+                writer.WriteLine("GO");
+                writer.WriteLine("SET IMPLICIT_TRANSACTIONS ON");
+                writer.WriteLine("BEGIN");
+
                 string[] srcLineArr = srcLine.Split(',');
                 int allIndex = 1;
 
@@ -379,8 +391,12 @@ namespace CSIdataCopy
                         writer.WriteLine(insert_sb.ToString());
                         generatedKeys.Add(generatedKey);
                         allIndex++;
+                        //if (allIndex % 5 == 0) writer.WriteLine("GO");
                     }
                 }
+                writer.WriteLine("END");
+                writer.WriteLine("COMMIT TRANSACTION");
+
                 reader.Close();
                 writer.Close();
             }
